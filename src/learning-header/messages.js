@@ -18,7 +18,7 @@ const messages = defineMessages({
   },
   account: {
     id: 'header.menu.account.label',
-    defaultMessage: 'Account Elite',
+    defaultMessage: 'Account',
     description: 'The text for the user menu Account navigation link.',
   },
   orderHistory: {
