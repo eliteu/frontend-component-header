@@ -61,7 +61,8 @@ const Header = ({ intl }) => {
     {
       type: 'item',
       href: config.ACCOUNT_SETTINGS_URL,
-      content: intl.formatMessage(messages['header.user.menu.account.settings']),
+      content: "账号设置",
+      // content: intl.formatMessage(messages['header.user.menu.account.settings']),
     },
     {
       type: 'item',
