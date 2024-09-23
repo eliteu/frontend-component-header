@@ -39,6 +39,16 @@ const Header = ({ intl }) => {
       href: `${config.LMS_BASE_URL}/dashboard`,
       content: intl.formatMessage(messages['header.links.courses']),
     },
+    {
+      type: 'item',
+      href: `${config.LMS_BASE_URL}/dashboard/programs`,
+      content: intl.formatMessage(messages['header.links.programs']),
+    },
+    {
+      type: 'item',
+      href: `${config.LMS_BASE_URL}/courses`,
+      content: intl.formatMessage(messages['header.links.content.search']),
+    },
   ];
 
   const orderHistoryItem = {
