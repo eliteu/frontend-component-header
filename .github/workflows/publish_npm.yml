@@ -1,0 +1,63 @@
+name: Publish NPM Package 
+on:
+  workflow_dispatch: # 手动触发时允许选择分支 
+    inputs:
+      target-branch:
+        description: '目标分支（仅限 dev）'
+        required: true 
+        default: 'dev'
+ 
+jobs:
+  publish-npm:
+    runs-on: ubuntu-latest 
+    permissions:
+      contents: read 
+      packages: write 
+    
+    # 双保险分支验证机制 
+    if: |
+      github.ref  == 'refs/heads/dev' ||
+      (github.event_name  == 'workflow_dispatch' && 
+       github.event.inputs.target-branch  == 'dev')
+ 
+    steps:
+      - name: Checkout code 
+        uses: actions/checkout@v4 
+        with:
+          ref: ${{ github.event.inputs.target-branch  || github.ref  }}
+ 
+      - name: Node.js  环境初始化 
+        uses: actions/setup-node@v4 
+        with:
+          node-version: '20'
+          registry-url: 'https://npm.pkg.github.com' 
+          always-auth: true 
+ 
+      - name: 依赖安装与缓存 
+        uses: actions/cache@v3 
+        with:
+          path: ~/.npm 
+          key: ${{ runner.os  }}-node-${{ hashFiles('**/package-lock.json')  }}
+          restore-keys: |
+            ${{ runner.os  }}-node-
+        run: npm ci --prefer-offline 
+ 
+      - name: 项目构建 
+        run: make build 
+        env:
+          NODE_ENV: production 
+ 
+      - name: 注册表配置 
+        run: |
+          echo "@aimaker:registry=https://npm.pkg.github.com/${{  github.repository_owner  }}" > .npmrc 
+          echo "//npm.pkg.github.com/:_authToken=${{  secrets.NPM_AUTH_TOKEN }}" >> .npmrc 
+          echo "strict-ssl=true" >> .npmrc 
+ 
+      - name: 版本预校验 
+        run: npm publish --dry-run 
+ 
+      - name: 正式发布（Dev分支专有）
+        if: github.ref  == 'refs/heads/dev'
+        run: npm publish 
+        env:
+          NODE_AUTH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
