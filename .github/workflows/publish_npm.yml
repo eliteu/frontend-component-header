@@ -1,56 +1,22 @@
-name: Publish frontend-component-header NPM Package 
-
-on: 
-  push:
-    branches:
-    - dev
+name: Publish package to GitHub Packages 
+on:
+  release:
+    types: [published]
+    branches: [ dev ]  # 限定主分支触发 
 jobs:
-  publish-npm:
+  build:
     runs-on: ubuntu-latest 
     permissions:
       contents: read 
       packages: write 
-    
-    if: github.ref_name == vars.DEV_BRANCH
     steps:
-      - name: Checkout code 
-        uses: actions/checkout@v4 
+      - uses: actions/checkout@v4 
+      - uses: actions/setup-node@v4 
         with:
-          fetch-depth: 10
- 
-      - name: Node.js  环境初始化 
-        uses: actions/setup-node@v4 
-        with:
-          node-version: '20'
+          node-version: '20.x'
           registry-url: 'https://npm.pkg.github.com' 
-          always-auth: true 
- 
-      - name: 依赖安装与缓存 
-        uses: actions/cache@v3 
-        with:
-          path: ~/.npm 
-          key: ${{ runner.os  }}-node-${{ hashFiles('**/package-lock.json')  }}
-          restore-keys: |
-            ${{ runner.os  }}-node-
-      - name: 安装依赖 
-        run: npm ci --prefer-offline 
- 
-      - name: 项目构建 
-        run: make build 
-        env:
-          NODE_ENV: production 
- 
-      - name: 注册表配置 
-        run: |
-          echo "@aimaker:registry=https://npm.pkg.github.com/${{  github.repository_owner  }}" > .npmrc 
-          echo "//npm.pkg.github.com/:_authToken=${{  secrets.NPM_AUTH_TOKEN }}" >> .npmrc 
-          echo "strict-ssl=true" >> .npmrc 
- 
-      - name: 版本预校验 
-        run: npm publish --dry-run 
- 
-      - name: 正式发布（Dev分支专有）
-        if: github.ref_name == vars.DEV_BRANCH
-        run: npm publish 
+          scope: '@eliteu'  # 替换为实际组织名 
+      - run: npm ci 
+      - run: npm publish --verbose 
         env:
           NODE_AUTH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
